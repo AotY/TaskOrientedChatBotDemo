@@ -11,6 +11,7 @@ socketio = SocketIO(app)
 @socketio.on("receive")
 def recevie_msg(msg):
     print(msg)
+    # get intent
     intent = predict(msg)
     answer_dict = {
         "greet": "你好～",
@@ -21,10 +22,11 @@ def recevie_msg(msg):
         "feature": "学猫叫，喵～喵～喵～",
         "bye": "886"
     }
+    # get simple response by intent
     answer = answer_dict[intent]
 
     with open("./dialog.txt", "a") as f_dialog:
-        f_dialog.write(msg+"\t"+answer+"\n")
+        f_dialog.write(msg + "\t" + answer + "\n")
 
     emit("response", {"msg": answer})
 

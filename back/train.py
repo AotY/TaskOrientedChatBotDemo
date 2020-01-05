@@ -3,7 +3,6 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.autograd import Variable
 from torch.utils.data import DataLoader
 import numpy as np
 
@@ -55,15 +54,15 @@ def train(config):
                 target_batch = target_batch.cuda()
                 intent_batch = intent_batch.cuda()
 
-            input_mask = torch.cat([Variable(torch.ByteTensor(tuple(map(lambda s: s == 0, t.data)))).cuda()
-                                if USE_CUDA else Variable(torch.ByteTensor(tuple(map(lambda s: s == 0, t.data))))
+            input_mask = torch.cat([torch.ByteTensor(tuple(map(lambda s: s == 0, t.data))).cuda()
+                                if USE_CUDA else torch.ByteTensor(tuple(map(lambda s: s == 0, t.data)))
                                 for t in input_batch]).view(batch_size, -1)
 
             encoder.zero_grad()
             decoder.zero_grad()
 
             output, hidden_c = encoder(input_batch, input_mask)
-            start_decode = Variable(torch.LongTensor([[input_vocab.index('PAD')] * batch_size])).transpose(1, 0)
+            start_decode = torch.LongTensor([[input_vocab.index('PAD')] * batch_size]).transpose(1, 0)
             if USE_CUDA:
                 start_decode = start_decode.cuda()
 

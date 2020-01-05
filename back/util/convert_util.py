@@ -10,9 +10,12 @@ class ConvertUtil(object):
 
         self.train_data_path = config["train_data_path"]
         self.validate_data_path = config["validate_data_path"]
+        
         self.input_vocab_path = config["input_vocab_path"]
         self.target_vocab_path = config["target_vocab_path"]
+
         self.intent_vocab_path = config["intent_vocab_path"]
+
         self.seq_length = config["seq_length"]
 
     def json2iob(self):

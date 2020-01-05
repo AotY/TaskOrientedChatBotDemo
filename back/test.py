@@ -1,7 +1,6 @@
 import os
 
 import torch
-from torch.autograd import Variable
 
 from util.config_util import read_config
 from util.convert_util import ConvertUtil
@@ -30,18 +29,25 @@ def predict(text):
     if USE_CUDA:
         input_batch = input_batch.cuda()
 
-    input_mask = torch.cat([Variable(torch.ByteTensor(tuple(map(lambda s: s == 0, t.data)))).cuda()
-                            if USE_CUDA else Variable(torch.ByteTensor(tuple(map(lambda s: s == 0, t.data))))
+    input_mask = torch.cat([torch.ByteTensor(tuple(map(lambda s: s == 0, t.data))).cuda()
+                            if USE_CUDA else torch.ByteTensor(tuple(map(lambda s: s == 0, t.data)))
                             for t in input_batch]).view(batch_size, -1)
+    print('input_mask: ', input_mask.size())
+
     encoder.zero_grad()
     decoder.zero_grad()
 
     output, hidden_c = encoder(input_batch, input_mask)
-    start_decode = Variable(torch.LongTensor([[input_vocab.index("PAD")] * batch_size])).transpose(1, 0)
+    print('encoder output: ', output.size())
+    print('encoder hidden_c: ', hidden_c.size())
+
+    start_decode = torch.LongTensor([[input_vocab.index("PAD")] * batch_size]).transpose(1, 0)
     if USE_CUDA:
         start_decode = start_decode.cuda()
 
     tag_score, intent_score = decoder(start_decode, hidden_c, output, input_mask)
+    print('tag_score: ', tag_score)
+    print('intent_score: ', intent_score)
 
     # batch, sequence_max_length, tag_length
     tag_score = tag_score.view(batch_size, -1, list(tag_score[1].size())[0])
@@ -49,7 +55,7 @@ def predict(text):
     # calculate intent detection accuracy
     _, max_index = intent_score.max(1)
     intent_test = intent_vocab[max_index[0]]
-    print(f"intent: {intent_test}")
+    print(f'intent: {intent_test}')
 
     # calculate tag detection accuracy
     _, max_tag_index = tag_score.max(2)

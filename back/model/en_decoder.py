@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 
 USE_CUDA = torch.cuda.is_available()
 
@@ -27,11 +26,11 @@ class Encoder(nn.Module):
         input : B,T (LongTensor)
         input_masking : B,T
         """
-        hidden = Variable(torch.zeros(self.n_layers * 2, input_data.size(0), self.hidden_size))
+        hidden = torch.zeros(self.n_layers * 2, input_data.size(0), self.hidden_size)
         if USE_CUDA:
             hidden = hidden.cuda()
 
-        context = Variable(torch.zeros(self.n_layers * 2, input_data.size(0), self.hidden_size))
+        context = torch.zeros(self.n_layers * 2, input_data.size(0), self.hidden_size)
         if USE_CUDA:
             context = context.cuda()
 
@@ -93,18 +92,18 @@ class Decoder(nn.Module):
         return context  # B,1,D
 
     def init_hidden(self, input):
-        hidden = Variable(
-            torch.zeros(self.n_layers * 1, input.size(0), self.hidden_size)).cuda() if USE_CUDA else Variable(
-            torch.zeros(self.n_layers, input.size(0), self.hidden_size))
-        context = Variable(
-            torch.zeros(self.n_layers * 1, input.size(0), self.hidden_size)).cuda() if USE_CUDA else Variable(
-            torch.zeros(self.n_layers, input.size(0), self.hidden_size))
+        hidden = torch.zeros(self.n_layers * 1, input.size(0), self.hidden_size)).cuda() if USE_CUDA 
+                else torch.zeros(self.n_layers, input.size(0), self.hidden_size)
+
+        context = torch.zeros(self.n_layers * 1, input.size(0), self.hidden_size)).cuda() if USE_CUDA 
+                else torch.zeros(self.n_layers, input.size(0), self.hidden_size))
+
         return (hidden, context)
 
     def forward(self, input, context, encoder_outputs, encoder_maskings, training=True):
         """
-        input : B,L(length)
-        enc_context : B,1,D
+        input : B, L(length)
+        enc_context : B, 1, D
         """
         # Get the embedding of the current input word
         embedded = self.embedding(input)
@@ -114,8 +113,9 @@ class Decoder(nn.Module):
         length = encoder_outputs.size(1)
         for i in range(length):  # Input_sequence Output_sequence
             aligned = aligns[i].unsqueeze(1)  # B,1,D
-            _, hidden = self.lstm(torch.cat((embedded, context, aligned), 2),
-                                  hidden)  # input, context, aligned encoder hidden, hidden
+
+            # input, context, aligned encoder hidden, hidden
+            _, hidden = self.lstm(torch.cat((embedded, context, aligned), 2), hidden)  
 
             # for Intent Detection
             if i == 0:

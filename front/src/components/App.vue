@@ -55,11 +55,13 @@ export default {
     connect: function(){
       // eslint-disable-next-line
       console.log('socket: connected')
+
       this.$socket.on('response', (data) => {
         this.messageList.push({user: 0, msg: data.msg})
         // eslint-disable-next-line
         console.log("receive: ",data)
       })
+
     }
   },
   data () {
