@@ -92,11 +92,11 @@ class Decoder(nn.Module):
         return context  # B,1,D
 
     def init_hidden(self, input):
-        hidden = torch.zeros(self.n_layers * 1, input.size(0), self.hidden_size)).cuda() if USE_CUDA 
+        hidden = torch.zeros(self.n_layers * 1, input.size(0), self.hidden_size).cuda() if USE_CUDA \
                 else torch.zeros(self.n_layers, input.size(0), self.hidden_size)
 
-        context = torch.zeros(self.n_layers * 1, input.size(0), self.hidden_size)).cuda() if USE_CUDA 
-                else torch.zeros(self.n_layers, input.size(0), self.hidden_size))
+        context = torch.zeros(self.n_layers * 1, input.size(0), self.hidden_size).cuda() if USE_CUDA \
+                else torch.zeros(self.n_layers, input.size(0), self.hidden_size)
 
         return (hidden, context)
 
@@ -115,7 +115,7 @@ class Decoder(nn.Module):
             aligned = aligns[i].unsqueeze(1)  # B,1,D
 
             # input, context, aligned encoder hidden, hidden
-            _, hidden = self.lstm(torch.cat((embedded, context, aligned), 2), hidden)  
+            _, hidden = self.lstm(torch.cat((embedded, context, aligned), 2), hidden)
 
             # for Intent Detection
             if i == 0:

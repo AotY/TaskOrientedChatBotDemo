@@ -22,14 +22,14 @@ def train(config):
     epoch_size = config["epoch_size"]
 
     dataset = DataUtil(config)
-    input_vocab, target_vocab, intent_vocab = dataset.get_vocab()
+    input_vocab, slot_vocab, intent_vocab = dataset.get_vocab()
     dataloader = DataLoader(dataset, batch_size, shuffle=True)
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
     encoder = Encoder(len(input_vocab), config)
-    decoder = Decoder(len(target_vocab), len(intent_vocab), hidden_size * 2)
+    decoder = Decoder(len(slot_vocab), len(intent_vocab), hidden_size * 2)
 
     if USE_CUDA:
         encoder = encoder.cuda()
@@ -46,18 +46,24 @@ def train(config):
     for epoch in range(1, epoch_size+1):
         losses = []
         for i, batch in enumerate(dataloader):
-            input_batch, target_batch, intent_batch = batch
+            input_batch, slot_batch, intent_batch = batch
             input_batch = input_batch.long()
-            target_batch = target_batch.long()
+            slot_batch = slot_batch.long()
             if USE_CUDA:
                 input_batch = input_batch.cuda()
-                target_batch = target_batch.cuda()
+                slot_batch = slot_batch.cuda()
                 intent_batch = intent_batch.cuda()
+
+            '''
 
             input_mask = torch.cat([torch.ByteTensor(tuple(map(lambda s: s == 0, t.data))).cuda()
                                 if USE_CUDA else torch.ByteTensor(tuple(map(lambda s: s == 0, t.data)))
                                 for t in input_batch]).view(batch_size, -1)
+            '''
 
+            input_mask = torch.cat([torch.BoolTensor(tuple(map(lambda s: s == 0, t.data))).cuda()
+                                if USE_CUDA else torch.BoolTensor(tuple(map(lambda s: s == 0, t.data)))
+                                for t in input_batch]).view(batch_size, -1)
             encoder.zero_grad()
             decoder.zero_grad()
 
@@ -68,7 +74,7 @@ def train(config):
 
             tag_score, intent_score = decoder(start_decode, hidden_c, output, input_mask)
 
-            loss_1 = loss_function_1(tag_score, target_batch.view(-1))
+            loss_1 = loss_function_1(tag_score, slot_batch.view(-1))
             loss_2 = loss_function_2(intent_score, intent_batch)
 
             loss = loss_1 + loss_2

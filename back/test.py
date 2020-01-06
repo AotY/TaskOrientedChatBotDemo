@@ -15,7 +15,7 @@ def predict(text):
 
     convert_util = ConvertUtil(config)
     test_input_list, vacab_list = convert_util.gen_test_data(text)
-    input_vocab, target_vocab, intent_vocab = vacab_list
+    input_vocab, slot_vocab, intent_vocab = vacab_list
 
     # load model
     if USE_CUDA:
@@ -29,8 +29,8 @@ def predict(text):
     if USE_CUDA:
         input_batch = input_batch.cuda()
 
-    input_mask = torch.cat([torch.ByteTensor(tuple(map(lambda s: s == 0, t.data))).cuda()
-                            if USE_CUDA else torch.ByteTensor(tuple(map(lambda s: s == 0, t.data)))
+    input_mask = torch.cat([torch.BoolTensor(tuple(map(lambda s: s == 0, t.data))).cuda()
+                            if USE_CUDA else torch.BoolTensor(tuple(map(lambda s: s == 0, t.data)))
                             for t in input_batch]).view(batch_size, -1)
     print('input_mask: ', input_mask.size())
 
@@ -59,9 +59,9 @@ def predict(text):
 
     # calculate tag detection accuracy
     _, max_tag_index = tag_score.max(2)
-    target_test = []
+    slot_test = []
     for tag in max_tag_index[0]:
-        target_test.append(target_vocab[tag])
+        slot_test.append(slot_vocab[tag])
 
     return intent_test
 

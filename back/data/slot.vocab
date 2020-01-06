@@ -1,0 +1,16 @@
+{
+    'PAD': 'PAD'
+    'UNK': 'UNK',
+    'O': 'O',
+    'CREDIT_CARD': '信用卡',
+    'REPAYMENT_DAY': '还款日',
+    'REPAYMENT': '还款',
+    'BILL': '账单',
+    'BILL_DAY': '账单日',
+    'FIXED_LIMIT': '固定额度',
+    'TEMPORARY_LIMIT': '临时额度',
+    'ANNUAL_FEE': '年费',
+    'INQUIRY': '查询',
+    'APPLY_FOR': '申请',
+}
+

@@ -10,9 +10,9 @@ class ConvertUtil(object):
 
         self.train_data_path = config["train_data_path"]
         self.validate_data_path = config["validate_data_path"]
-        
+
         self.input_vocab_path = config["input_vocab_path"]
-        self.target_vocab_path = config["target_vocab_path"]
+        self.slot_vocab_path = config["slot_vocab_path"]
 
         self.intent_vocab_path = config["intent_vocab_path"]
 
@@ -51,16 +51,16 @@ class ConvertUtil(object):
     @staticmethod
     def read_data(input_data_path):
         input_data_list = []
-        target_data_list = []
+        slot_data_list = []
         intent_data_list = []
         with open(input_data_path, "r") as f_input:
             for line in f_input:
-                input_data, target_data, intent_data = line.split("\t")
+                input_data, slot_data, intent_data = line.split("\t")
                 input_data_list.append(input_data.split())
-                target_data_list.append(target_data.split())
+                slot_data_list.append(slot_data.split())
                 intent_data_list.append([intent_data.strip()])
 
-        return input_data_list, target_data_list, intent_data_list
+        return input_data_list, slot_data_list, intent_data_list
 
     @staticmethod
     def get_vocab(vocab_path, all_data, is_train):
@@ -107,59 +107,65 @@ class ConvertUtil(object):
 
     @staticmethod
     def intent2id(intent_vocab, intent_data):
-        target_id_list = []
+        intent_id_list = []
         for intent_item in intent_data:
             if intent_item[0] in intent_vocab:
-                target_id_list.append(intent_vocab.index(intent_item[0]))
+                intent_id_list.append(intent_vocab.index(intent_item[0]))
             else:
                 raise ValueError(intent_item[0])
-        return target_id_list
+        return intent_id_list
 
     def gen_train_data(self):
         print("\n>> start read train data...")
-        train_input, train_target, train_intent = self.read_data(self.train_data_path)
+        train_input, train_slot, train_intent = self.read_data(self.train_data_path)
+
         print(">> start read validate data...")
-        validate_input, validate_target, validate_intent = self.read_data(self.validate_data_path)
+        validate_input, validate_slot, validate_intent = self.read_data(self.validate_data_path)
 
         print("\n>> start read input vocab...")
         input_vocab = self.get_vocab(self.input_vocab_path, train_input, True)
-        print(">> start read target vocab...")
-        target_vocab = self.get_vocab(self.target_vocab_path, train_target, True)
+
+        print(">> start read slot vocab...")
+        slot_vocab = self.get_vocab(self.slot_vocab_path, train_slot, True)
+
         print(">> start read intent vocab...")
         intent_vocab = self.get_vocab(self.intent_vocab_path, train_intent, True)
 
         print("\n>> word to id: train...")
         train_input_list = self.word2id(input_vocab, train_input, self.seq_length)
+
         print(">> word to id: validate...")
         validate_input_list = self.word2id(input_vocab, validate_input, self.seq_length)
 
-        print("\n>> target to id: train...")
-        train_target_list = self.word2id(target_vocab, train_target, self.seq_length)
-        print(">> target to id: validate...")
-        validate_target_list = self.word2id(target_vocab, validate_target, self.seq_length)
+        print("\n>> slot to id: train...")
+        train_slot_list = self.word2id(slot_vocab, train_slot, self.seq_length)
+
+        print(">> slot to id: validate...")
+        validate_slot_list = self.word2id(slot_vocab, validate_slot, self.seq_length)
 
         print("\n>> intent to id: train...")
         train_intent_list = self.intent2id(intent_vocab, train_intent)
+
         print(">> intent to id: validate...")
         validate_intent_list = self.intent2id(intent_vocab, validate_intent)
 
-        train_data_list = [train_input_list, train_target_list, train_intent_list]
-        validate_data_list = [validate_input_list, validate_target_list, validate_intent_list]
-        vacab_list = [input_vocab, target_vocab, intent_vocab]
+        train_data_list = [train_input_list, train_slot_list, train_intent_list]
+        validate_data_list = [validate_input_list, validate_slot_list, validate_intent_list]
+        vacab_list = [input_vocab, slot_vocab, intent_vocab]
 
         return train_data_list, validate_data_list, vacab_list
 
     def gen_test_data(self, test_data):
         # print("\n>> start read input vocab...")
         input_vocab = self.get_vocab(self.input_vocab_path, "", False)
-        # print(">> start read target vocab...")
-        target_vocab = self.get_vocab(self.target_vocab_path, "", False)
+        # print(">> start read slot vocab...")
+        slot_vocab = self.get_vocab(self.slot_vocab_path, "", False)
         # print(">> start read intent vocab...")
         intent_vocab = self.get_vocab(self.intent_vocab_path, "", False)
 
         # print("\n>> word to id: test...")
         test_input_list = self.word2id(input_vocab, [test_data], self.seq_length)
 
-        vacab_list = [input_vocab, target_vocab, intent_vocab]
+        vacab_list = [input_vocab, slot_vocab, intent_vocab]
 
         return test_input_list, vacab_list

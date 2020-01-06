@@ -9,6 +9,7 @@ class DataUtil(Dataset):
         self.dataset_size = config["dataset_size"]
 
         self.convert_util = ConvertUtil(config)
+
         self.convert_util.json2iob()
 
         if self.run_type == "train":
@@ -17,8 +18,10 @@ class DataUtil(Dataset):
     def __getitem__(self, index):
         if self.run_type == "train":
             return self.train_data_list[0][index], self.train_data_list[1][index], self.train_data_list[2][index]
+
         elif self.run_type == "validate":
             return self.validate_data_list[0][index], self.validate_data_list[1][index], self.validate_data_list[2][index]
+
         else:
             raise ValueError(f"error run type: {self.run_type} !")
 
