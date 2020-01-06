@@ -10,6 +10,9 @@
     'FIXED_LIMIT': '固定额度',
     'TEMPORARY_LIMIT': '临时额度',
     'ANNUAL_FEE': '年费',
+    'DATE': '日期',
+    'WHEN': '时候，时间',
+    'AMOUNT': '多少，数量',
     'INQUIRY': '查询',
     'APPLY_FOR': '申请',
 }
