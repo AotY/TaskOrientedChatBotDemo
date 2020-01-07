@@ -1,0 +1,16 @@
+{
+    'PAD': 'PAD'
+    'UNK': 'UNK',
+    'TEMPORARY_LIMIT_INQUIRY': '临时额度查询',
+    'FIXED_LIMIT_INQUIRY': '固定额度查询',
+    'BILL_INQUIRY': '账单查询',
+    'BILL_DAY_INQUIRY': '账单日查询',
+    'REPAYMENT_DAY_INQUIRY': '还款日查询',
+    'ANNUAL_FEE_INQUIRY': '年费查询',
+    'APPLY_FOR_TEMPORARY_LIMIT': '申请临时额度',
+    'APPLY_FOR_FIXED_LIMIT': '申请固定额度',
+    'CONFIRM': '确认',
+    'GREET': '欢迎',
+    'BYE': '再见',
+}
+

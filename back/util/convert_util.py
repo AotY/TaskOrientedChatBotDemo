@@ -1,22 +1,38 @@
 import json
-
+import jieba
 import numpy as np
 
-
+'''
+input_json_path: "./data/train.json"
+input_iob_path: "./data/train.iob"
+train_data_path: "./data/train.iob"
+validate_data_path: "./data/validate.iob"
+input_vocab_path: "./data/input.vocab"
+slot_vocab_path: "./data/slot.vocab"
+intent_vocab_path: "./data/intent.vocab"
+'''
 class ConvertUtil(object):
     def __init__(self, config):
+        # ../data/train.json
         self.input_json_path = config["input_json_path"]
+        # ../data/train.iob
         self.input_iob_path = config["input_iob_path"]
 
+        # ../data/train.iob
         self.train_data_path = config["train_data_path"]
+        # ../data/validate.iob
         self.validate_data_path = config["validate_data_path"]
 
+        # ../data/input.vocab
         self.input_vocab_path = config["input_vocab_path"]
+        # ../data/vocab.vocab
         self.slot_vocab_path = config["slot_vocab_path"]
-
+        # ../data/intent.vocab
         self.intent_vocab_path = config["intent_vocab_path"]
 
         self.seq_length = config["seq_length"]
+
+        self.input_vocab, self.slot_vocab, self.intent_vocab = [None, None, None]
 
     def json2iob(self):
         with open(self.input_json_path, "r", encoding='utf_8_sig') as f_read:
@@ -27,16 +43,24 @@ class ConvertUtil(object):
         for json_item in json_data["rasa_nlu_data"]["common_examples"]:
             # TODO 特殊字符替换
             text = json_item["text"].replace(" ", ",")
-            text_split = " ".join([word for word in text])
+            # 分词
+            words = jieba.cut(text)
+            text_split = " ".join(words)
+
             intent = json_item["intent"]
+
             entity_list = json_item["entities"]
-            label_entity_list = ["O" for _ in range(len(text))]
+            # 实体
+            label_entity_list = ["O" for _ in range(len(words))]
+
             for entity_item in entity_list:
                 pos_start = entity_item["start"]
                 pos_end = entity_item["end"]
                 label = entity_item["entity"]
+
                 label_entity_list[pos_start] = f"B-{label}"
                 label_entity_list[pos_end-1] = f"I-{label}"
+
                 if f"B-{label}" not in label_list:
                     label_list.append(f"B-{label}")
                     label_list.append(f"I-{label}")
@@ -55,6 +79,7 @@ class ConvertUtil(object):
         intent_data_list = []
         with open(input_data_path, "r") as f_input:
             for line in f_input:
+                # words \t slots \t intent
                 input_data, slot_data, intent_data = line.split("\t")
                 input_data_list.append(input_data.split())
                 slot_data_list.append(slot_data.split())
@@ -65,7 +90,7 @@ class ConvertUtil(object):
     @staticmethod
     def get_vocab(vocab_path, all_data, is_train):
         if is_train:
-            vocab_list = ["PAD", "UNK"]
+            vocab_list = ["PAD", "UNK", 'SOS', 'EOS']
             for data_item in all_data:
                 for data in data_item:
                     if data not in vocab_list:
@@ -86,9 +111,12 @@ class ConvertUtil(object):
             word_item_len = len(word_item_list)
 
             if word_item_len >= seq_length:
-                word_item_list = word_item_list[:seq_length]
+                word_item_list = word_item_list[:seq_length - 2] # for SOS and EOS
             else:
-                word_item_list = word_item_list + ["PAD"] * (seq_length - word_item_len)
+                word_item_list = word_item_list + ["PAD"] * (seq_length - 2 - word_item_len)
+
+            word_item_list.insert(0, 'SOS')
+            word_item_list.append('EOS')
 
             input_id_list = []
             for word in word_item_list:
@@ -153,19 +181,25 @@ class ConvertUtil(object):
         validate_data_list = [validate_input_list, validate_slot_list, validate_intent_list]
         vacab_list = [input_vocab, slot_vocab, intent_vocab]
 
+        self.input_vocab, self.slot_vocab, self.intent_vocab = vocab_list
+
         return train_data_list, validate_data_list, vacab_list
 
     def gen_test_data(self, test_data):
-        # print("\n>> start read input vocab...")
-        input_vocab = self.get_vocab(self.input_vocab_path, "", False)
-        # print(">> start read slot vocab...")
-        slot_vocab = self.get_vocab(self.slot_vocab_path, "", False)
-        # print(">> start read intent vocab...")
-        intent_vocab = self.get_vocab(self.intent_vocab_path, "", False)
+        if self.input_vocab is None:
+            # print("\n>> start read input vocab...")
+            self.input_vocab = self.get_vocab(self.input_vocab_path, "", False)
+        if self.slot_vocab is None:
+            # print(">> start read slot vocab...")
+            self.slot_vocab = self.get_vocab(self.slot_vocab_path, "", False)
+
+        if self.intent_vocab is None:
+            # print(">> start read intent vocab...")
+            self.intent_vocab = self.get_vocab(self.intent_vocab_path, "", False)
 
         # print("\n>> word to id: test...")
-        test_input_list = self.word2id(input_vocab, [test_data], self.seq_length)
+        test_input_list = self.word2id(self.input_vocab, [test_data], self.seq_length)
 
-        vacab_list = [input_vocab, slot_vocab, intent_vocab]
+        vacab_list = [self.input_vocab, self.slot_vocab, self.intent_vocab]
 
         return test_input_list, vacab_list
