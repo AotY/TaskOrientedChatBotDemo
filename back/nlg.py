@@ -27,7 +27,7 @@ class NLG:
         # if Dn
         msg = ''
         if Dn == 'GREET':
-            msg = '您好，中国平安。请问有什么可以帮您？'
+            msg = '您好。请问有什么可以帮您？'
         elif Dn == 'RESULT':
             if Ai == 'TEMPORARY_LIMIT_INQUIRY':
                 msg = '您目前的临时额度为2万伍仟元整。'
@@ -51,9 +51,9 @@ class NLG:
             elif Ai == 'APPLY_FOR_FIXED_LIMIT':
                 msg = '由于您的消费状况良好，我行可以将您目前的固定额度调为5万元整，请问您确认要调整吗？'
         elif Dn == 'BYE':
-            msg = '再见，祝你平安。'
+            msg = '再见。'
         else:
-            msg = '您好，中国平安。请问有什么可以帮您？'
+            msg = '请问有什么可以帮您？'
 
         self.msg_list.append(msg)
         return msg
